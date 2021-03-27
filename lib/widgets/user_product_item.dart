@@ -8,6 +8,7 @@ class UserProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(
       context,
+      listen: false,
     );
 
     return Column(
