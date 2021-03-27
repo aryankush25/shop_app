@@ -21,6 +21,30 @@ class _EditProductScreenState extends State<EditProductScreen> {
   String _description = '';
   String _imageUrl = '';
 
+  var _isInit = false;
+
+  @override
+  void didChangeDependencies() {
+    if (!_isInit) {
+      _isInit = true;
+      final productid = ModalRoute.of(context).settings.arguments as String;
+
+      if (productid != null && productid.isNotEmpty) {
+        final product = Provider.of<Products>(context, listen: false).findById(
+          productid,
+        );
+
+        _title = product.title;
+        _price = product.price;
+        _description = product.description;
+        _imageUrl = product.imageUrl;
+        _imageUrlController.text = product.imageUrl;
+      }
+    }
+
+    super.didChangeDependencies();
+  }
+
   @override
   void dispose() {
     _priceFocusNode.dispose();
@@ -33,18 +57,36 @@ class _EditProductScreenState extends State<EditProductScreen> {
 
     if (isValid) {
       _formkey.currentState.save();
-
-      var _editedProduct = Product(
-        id: DateTime.now().toString(),
-        title: _title,
-        description: _description,
-        imageUrl: _imageUrl,
-        price: _price,
-      );
-
       final productsProvider = Provider.of<Products>(context, listen: false);
+      final productid = ModalRoute.of(context).settings.arguments as String;
 
-      productsProvider.addProduct(_editedProduct);
+      if (productid != null && productid.isNotEmpty) {
+        final product = Provider.of<Products>(context, listen: false).findById(
+          productid,
+        );
+
+        var _editedProduct = Product(
+          id: productid,
+          title: _title,
+          description: _description,
+          imageUrl: _imageUrl,
+          price: _price,
+          isFavourite: product.isFavourite,
+        );
+
+        productsProvider.updateProduct(_editedProduct);
+      } else {
+        var _editedProduct = Product(
+          id: DateTime.now().toString(),
+          title: _title,
+          description: _description,
+          imageUrl: _imageUrl,
+          price: _price,
+        );
+
+        productsProvider.addProduct(_editedProduct);
+      }
+
       Navigator.of(context).pop();
     }
   }
@@ -69,6 +111,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             child: Column(
               children: [
                 TextFormField(
+                  initialValue: _title,
                   decoration: InputDecoration(
                     labelText: 'Title',
                   ),
@@ -89,6 +132,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _price.toString(),
                   decoration: InputDecoration(
                     labelText: 'Price',
                   ),
@@ -111,6 +155,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _description,
                   decoration: InputDecoration(
                     labelText: 'Description',
                   ),
